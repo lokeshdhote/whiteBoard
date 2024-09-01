@@ -1,13 +1,16 @@
-import React, { useEffect, useRef, forwardRef } from 'react';
+import React, { useEffect, useRef, useState, forwardRef } from 'react';
 import rough from 'roughjs/bin/rough';
 
 const WhiteBoard = forwardRef(({ selectedTool }, ref) => {
   const internalCanvasRef = useRef(null); // Local ref to manage canvas drawing internally
+  const [isDrawing, setIsDrawing] = useState(false); // State to track if the user is drawing
+  const [currentPath, setCurrentPath] = useState([]); // State to store the current drawing path
 
   useEffect(() => {
     const canvas = ref.current || internalCanvasRef.current;
     if (!canvas) return;
 
+    const context = canvas.getContext('2d');
     const rc = rough.canvas(canvas);
 
     const handleCanvasClick = (event) => {
@@ -21,7 +24,7 @@ const WhiteBoard = forwardRef(({ selectedTool }, ref) => {
           rc.circle(offsetX, offsetY, 50, { stroke: 'red', fill: 'blue', fillStyle: 'solid' });
           break;
         case 'Pen':
-          // Implement pen drawing logic (e.g., free-hand drawing) here
+          // Start drawing on mouse down
           break;
         case 'Erase':
           // Implement eraser logic (e.g., clearing parts of the drawing) here
@@ -31,13 +34,44 @@ const WhiteBoard = forwardRef(({ selectedTool }, ref) => {
       }
     };
 
+    const handleMouseDown = (event) => {
+      if (selectedTool === 'Pen') {
+        setIsDrawing(true);
+        const { offsetX, offsetY } = event;
+        setCurrentPath([[offsetX, offsetY]]);
+      }
+    };
+
+    const handleMouseMove = (event) => {
+      if (isDrawing && selectedTool === 'Pen') {
+        const { offsetX, offsetY } = event;
+        setCurrentPath((prevPath) => [...prevPath, [offsetX, offsetY]]);
+        context.lineTo(offsetX, offsetY);
+        context.stroke();
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isDrawing && selectedTool === 'Pen') {
+        setIsDrawing(false);
+        context.closePath();
+        setCurrentPath([]); // Clear the current path after drawing
+      }
+    };
+
     canvas.addEventListener('click', handleCanvasClick);
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
 
     // Cleanup on component unmount
     return () => {
       canvas.removeEventListener('click', handleCanvasClick);
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [selectedTool, ref]);
+  }, [selectedTool, ref, isDrawing, currentPath]);
 
   return (
     <canvas
@@ -50,8 +84,6 @@ const WhiteBoard = forwardRef(({ selectedTool }, ref) => {
 });
 
 export default WhiteBoard;
-
-
 
 
 
