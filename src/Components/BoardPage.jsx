@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import WhiteBoard from "./WhiteBoard"; // Ensure WhiteBoard is properly implemented and ref-forwarding is handled
+import WhiteBoard from "./whiteBoard.jsx"; // Ensure WhiteBoard is properly implemented and ref-forwarding is handled
 import MoveIcon from "../assets/drag-move-line.png";
 import PenIcon from "../assets/pen-nib-fill.png";
 import RectangleIcon from "../assets/rectangle-line.png";
